@@ -7,6 +7,7 @@ import "C"
 
 import (
 	"reflect"
+	"runtime"
 	"unsafe"
 )
 
@@ -15,9 +16,12 @@ func alloc(size uintptr) *byte {
 }
 
 func AllocBytes(size int) []byte {
-	alloc := alloc(uintptr(size))
-	buf := (*[1 << 30]byte)(unsafe.Pointer(alloc))[:size:size]
-	return buf
+	buf := alloc(uintptr(size))
+	out := (*[1 << 30]byte)(unsafe.Pointer(buf))[:size:size]
+	runtime.SetFinalizer(&out, func(x *[]byte) {
+		FreeBytes(*x)
+	})
+	return out
 }
 
 func FreeBytes(b []byte) {
