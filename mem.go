@@ -1,31 +1,26 @@
 package cmem
 
-//include <stdlib.h>
+/*
+#include <stdlib.h>
+*/
 import "C"
-import "unsafe"
+
+import (
+	"reflect"
+	"unsafe"
+)
 
 func alloc(size uintptr) *byte {
 	return (*byte)(C.malloc(C.size_t(size)))
 }
 
-func free(ptr *byte, size uintptr) { //size not used
-	C.free(unsafe.Pointer(ptr))
-}
-
 func AllocBytes(size int) []byte {
-	alloc := alloc(uintprt(size))
-	buf := (*[1 << 30]byte)(unsafe.Pointer(alloc))[:count]
+	alloc := alloc(uintptr(size))
+	buf := (*[1 << 30]byte)(unsafe.Pointer(alloc))[:size:size]
 	return buf
 }
 
-func FreeBytes(ptr *byte) {
-	free(ptr, uintptr(0))
+func FreeBytes(b []byte) {
+	sliceHeader := (*reflect.SliceHeader)((unsafe.Pointer(&b)))
+	C.free(unsafe.Pointer(sliceHeader.Data))
 }
-
-/*
-	alloc := memory.Alloc(uintptr(count))
-	buf := (*[1 << 30]byte)(unsafe.Pointer(alloc))[:count]
-
-	//free
-	memory.Free(alloc, uintptr(count))
-*/
